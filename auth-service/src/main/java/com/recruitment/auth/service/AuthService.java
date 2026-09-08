@@ -9,6 +9,9 @@ import com.recruitment.auth.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.recruitment.auth.exception.EmailAlreadyExistsException;
+import com.recruitment.auth.exception.InvalidCredentialsException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -17,11 +20,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+
 
     public User register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new EmailAlreadyExistsException("Email already exists");
         }
 
         User user = User.builder()
@@ -39,14 +44,37 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        String token = jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(user);
 
-        return new AuthResponse(token);
+        String refreshToken = refreshTokenService
+                .createRefreshToken(user)
+                .getToken();
+
+        return new AuthResponse(
+                accessToken,
+                refreshToken
+        );
+    }
+
+    public AuthResponse refresh(String refreshToken) {
+
+        User user = refreshTokenService.validateRefreshToken(refreshToken);
+
+        String newAccessToken = jwtService.generateToken(user);
+
+        return new AuthResponse(
+                newAccessToken,
+                refreshToken
+        );
+    }
+
+    public void logout(String refreshToken) {
+        refreshTokenService.revokeRefreshToken(refreshToken);
     }
 }

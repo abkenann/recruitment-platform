@@ -1,9 +1,6 @@
 package com.recruitment.auth.controller;
 
-import com.recruitment.auth.dto.AuthResponse;
-import com.recruitment.auth.dto.LoginRequest;
-import com.recruitment.auth.dto.RegisterRequest;
-import com.recruitment.auth.dto.UserResponse;
+import com.recruitment.auth.dto.*;
 import com.recruitment.auth.entity.User;
 import com.recruitment.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -51,5 +48,23 @@ public class AuthController {
     @GetMapping("/test")
     public ResponseEntity<String> test() {
         return ResponseEntity.ok("JWT works!");
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        return ResponseEntity.ok(
+                authService.refresh(request.getRefreshToken())
+        );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        authService.logout(request.getRefreshToken());
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
