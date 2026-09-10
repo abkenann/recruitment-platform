@@ -32,6 +32,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**")
+                        .hasRole("SYSTEM_ADMIN")
+
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**")
                         .hasRole("SYSTEM_ADMIN")
 

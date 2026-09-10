@@ -17,25 +17,29 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
 
-    public UserProfile createProfile(CreateUserProfileRequest request) {
+    public UserProfile createProfile(
+            Long authUserId,
+            String email,
+            CreateUserProfileRequest request
+    ) {
 
-        if (userProfileRepository.existsByAuthUserId(request.getAuthUserId())) {
+        if (userProfileRepository.existsByAuthUserId(authUserId)) {
             throw new UserProfileAlreadyExistsException(
                     "User profile already exists for this authUserId"
             );
         }
 
-        if (userProfileRepository.existsByEmail(request.getEmail())) {
+        if (userProfileRepository.existsByEmail(email)) {
             throw new UserProfileAlreadyExistsException(
                     "User profile already exists for this email"
             );
         }
 
         UserProfile profile = UserProfile.builder()
-                .authUserId(request.getAuthUserId())
+                .authUserId(authUserId)
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .email(request.getEmail())
+                .email(email)
                 .phone(request.getPhone())
                 .city(request.getCity())
                 .country(request.getCountry())

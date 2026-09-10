@@ -12,8 +12,6 @@ import lombok.Setter;
 @Setter
 public class CreateUserProfileRequest {
 
-    @NotNull(message = "authUserId is required")
-    private Long authUserId;
 
     @NotBlank(message = "firstName is required")
     @Size(min = 2, max = 50, message = "firstName must be between 2 and 50 characters")
@@ -23,9 +21,6 @@ public class CreateUserProfileRequest {
     @Size(min = 2, max = 50, message = "lastName must be between 2 and 50 characters")
     private String lastName;
 
-    @NotBlank(message = "email is required")
-    @Email(message = "email format is invalid")
-    private String email;
 
     @Pattern(
             regexp = "^\\+?[0-9]{7,15}$",

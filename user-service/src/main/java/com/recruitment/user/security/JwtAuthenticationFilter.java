@@ -38,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String email = jwtService.extractEmail(token);
+            Long userId = jwtService.extractUserId(token);
             String role = jwtService.extractRole(token);
 
             if (email != null &&
@@ -47,9 +48,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new SimpleGrantedAuthority("ROLE_" + role)
                 );
 
+                var principal = new AuthenticatedUser(
+                        userId,
+                        email,
+                        role
+                );
+
                 var authentication =
                         new UsernamePasswordAuthenticationToken(
-                                email,
+                                principal,
                                 null,
                                 authorities
                         );

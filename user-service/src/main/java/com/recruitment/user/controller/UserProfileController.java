@@ -4,11 +4,13 @@ import com.recruitment.user.dto.CreateUserProfileRequest;
 import com.recruitment.user.dto.UpdateUserProfileRequest;
 import com.recruitment.user.dto.UserProfileResponse;
 import com.recruitment.user.entity.UserProfile;
+import com.recruitment.user.security.AuthenticatedUser;
 import com.recruitment.user.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,9 +22,17 @@ public class UserProfileController {
 
     @PostMapping
     public ResponseEntity<UserProfileResponse> createProfile(
+            Authentication authentication,
             @Valid @RequestBody CreateUserProfileRequest request
     ) {
-        UserProfile profile = userProfileService.createProfile(request);
+        AuthenticatedUser currentUser =
+                (AuthenticatedUser) authentication.getPrincipal();
+
+        UserProfile profile = userProfileService.createProfile(
+                currentUser.getUserId(),
+                currentUser.getEmail(),
+                request
+        );
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -61,5 +71,41 @@ public class UserProfileController {
         userProfileService.deleteProfile(authUserId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMyProfile(
+            Authentication authentication
+    ) {
+        AuthenticatedUser currentUser =
+                (AuthenticatedUser) authentication.getPrincipal();
+
+        UserProfile profile =
+                userProfileService.getProfileByAuthUserId(
+                        currentUser.getUserId()
+                );
+
+        return ResponseEntity.ok(
+                userProfileService.mapToResponse(profile)
+        );
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UserProfileResponse> updateMyProfile(
+            Authentication authentication,
+            @Valid @RequestBody UpdateUserProfileRequest request
+    ) {
+        AuthenticatedUser currentUser =
+                (AuthenticatedUser) authentication.getPrincipal();
+
+        UserProfile profile =
+                userProfileService.updateProfile(
+                        currentUser.getUserId(),
+                        request
+                );
+
+        return ResponseEntity.ok(
+                userProfileService.mapToResponse(profile)
+        );
     }
 }
